@@ -1,1 +1,1 @@
-mod datasets_config;
+pub mod datasets_config;

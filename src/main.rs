@@ -1,41 +1,34 @@
 mod extractor;
-use polars::frame::DataFrame;
-use extractor::csv::get_csv_file;
-use extractor::fred::fetch_fred_data;
-use extractor::ecb::fetch_ecb_data;
+use extractor::extractor_manager::extract_data;
+use model::data_model::AllDatasets;
+use transformer::normalize::normalize_data;
+use crate::model::data_model::DatasetWithConfig;
+use std::time::Instant;
+
 mod transformer;
 mod loader;
 mod utils;
 mod tests;
+mod datasets_config;
+mod model;
 
 #[tokio::main]
 async fn main() {
-    // EUR to USD exchange rate
-    let fx_rates_df: DataFrame = get_csv_file("csv_data/DEXUSEU.csv").unwrap();
-    println!("{fx_rates_df}");
+    let start = Instant::now();
 
-    // S&P500
-    let fred_sp500_id: &str = "SP500";
-    let fred_sp500_df: DataFrame = fetch_fred_data(fred_sp500_id).await;
-    println!("{fred_sp500_df}");
+    let all_datasets: AllDatasets = extract_data().await;
 
-    // US GDP
-    let fred_us_gdp_id: &str = "FYGDP";
-    let fred_us_gdp_df: DataFrame = fetch_fred_data(fred_us_gdp_id).await;
-    println!("{fred_us_gdp_df}");
+    let all_normalized_datasets: Vec<DatasetWithConfig> = normalize_data(all_datasets);
 
-    // US Total Public Debt
-    let fred_us_total_public_debt_id: &str = "GFDEBTN";
-    let fred_us_total_public_debt_df: DataFrame = fetch_fred_data(fred_us_total_public_debt_id).await;
-    println!("{fred_us_total_public_debt_df}");
+    // Debug export
+    for dataset in all_normalized_datasets {
+        let name = dataset.name;
+        println!("name is {name}");
+        let dataframe = dataset.dataframe;
+        println!("{dataframe}");
+    }
 
-    // US Inflation
-    let fred_us_inflation_id: &str = "CORESTICKM159SFRBATL";
-    let fred_us_inflation_df: DataFrame = fetch_fred_data(fred_us_inflation_id).await;
-    println!("{fred_us_inflation_df}");
-
-    // ECB data - Government debt
-    let ecb_government_debt = fetch_ecb_data().await;
-    // println!("{ecb_government_debt}");
+    let duration = start.elapsed();
+    println!("Execution time: {:?}", duration);
 
 }
