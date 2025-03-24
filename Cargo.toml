@@ -1,0 +1,20 @@
+[package]
+name = "financial_engine"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+reqwest = { version = "0.12.12", features = ["json"]}
+serde = { version = "1.0.218", features = ["derive"] }
+dotenvy = "0.15"
+config = "0.15.8"
+tempfile = "3.17.1"
+tokio = { version = "1.43.0", features = ["full"] }
+polars = { version = "0.46.0", features = ["lazy","parquet", "csv","dtype-datetime","strings", "dtype-date"] }
+quick-xml = { version = "0.37.2", features = ["serde", "serialize"] }
+serde_json = "1.0.139"
+rayon = "1.10.0"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+mockito = "1.6.1"
