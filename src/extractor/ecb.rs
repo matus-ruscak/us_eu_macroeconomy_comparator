@@ -30,7 +30,6 @@ pub async fn get_data(endpoint: &str, input_base_url: Option<&str>) -> Result<Da
         .send()
         .await?;
 
-    // Check the HTTP status explicitly!
     if !resp.status().is_success() {
         return Err(format!("Request failed with status: {}", resp.status()).into());
     }
@@ -39,28 +38,14 @@ pub async fn get_data(endpoint: &str, input_base_url: Option<&str>) -> Result<Da
 
     let result = parse_xml(&response_body).unwrap();
 
-    // let response = client
-    //     .get(url)
-    //     .headers(headers)
-    //     .send()
-    //     .await?
-    //     .text()
-    //     .await?;
-    //
-    // println!("response is: {response}");
-
-    // let result = parse_xml(&response).unwrap();
-
     let quarters: Vec<&str> = result.keys().map(|s| s.as_str()).collect();
     let values: Vec<f64> = result.values().copied().collect();
 
-    // Create Polars Series
     let quarter_col_name = PlSmallStr::from_str("quarter");
     let value_col_name = PlSmallStr::from_str("value");
     let quarter_series = Series::new(quarter_col_name, quarters);
     let value_series = Series::new(value_col_name, values);
 
-    // Create a DataFrame
     let df = DataFrame::new(vec![quarter_series.into(), value_series.into()]).unwrap();
 
     Ok(df)
@@ -125,15 +110,12 @@ fn validate_quarters_and_values(quarters: &Vec<String>, values: &Vec<f64>) -> ()
 #[cfg(test)]
 mod tests {
     use super::*;
-    use polars::prelude::*;
     use tokio;
     use mockito;
-    use polars::prelude::*;
     use polars::datatypes::PlSmallStr;
 
     #[test]
     fn test_parse_xml_basic_case() {
-        // Arrange: Define an XML sample input
         let xml_data = r#"
         <root>
             <generic:ObsDimension value="2024-Q1" xmlns:generic="generic"/>
@@ -145,10 +127,8 @@ mod tests {
         </root>
         "#;
 
-        // Act: Call the function under test
         let result = parse_xml(xml_data).expect("XML parsing failed");
 
-        // Assert: Check if the parsed data matches our expectations
         let mut expected = HashMap::new();
         expected.insert("2024-Q1".to_string(), 1000.50);
         expected.insert("2024-Q2".to_string(), 2000.75);
@@ -202,16 +182,18 @@ mod tests {
     fn assert_frame_equal(df1: &DataFrame, df2: &DataFrame) {
         assert_eq!(df1.shape(), df2.shape(), "Shape mismatch");
 
-        for (s1, s2) in df1.get_columns().iter().zip(df2.get_columns()) {
-            assert_eq!(s1.dtype(), s2.dtype(), "Column {} type mismatch", s1.name());
-            assert_eq!(s1.len(), s2.len(), "Column {} length mismatch", s1.name());
+        let df1_sorted = sort_dataframe(df1);
+        let df2_sorted = sort_dataframe(df2);
 
-            for i in 0..s1.len() {
-                let v1 = s1.get(i).unwrap();
-                let v2 = s2.get(i).unwrap();
-                assert_eq!(v1, v2, "Mismatch at row {}", i);
-            }
-        }
+        assert_eq!(df1_sorted, df2_sorted, "DataFrames do not match");
+    }
+
+    fn sort_dataframe(df: &DataFrame) -> DataFrame {
+        let mut sorted_cols: Vec<String> = df.get_column_names().iter().map(|s| s.to_string()).collect();
+        sorted_cols.sort();
+        let sorted_df = df.select(&sorted_cols).unwrap();
+        let sort_columns: Vec<String> = sorted_df.get_column_names().iter().map(|s| s.to_string()).collect();
+        sorted_df.sort(&sort_columns, SortMultipleOptions::new()).unwrap()
     }
 
     #[tokio::test]
@@ -261,20 +243,4 @@ mod tests {
         let result = get_data(&endpoint, Some(&base_url)).await;
         assert!(result.is_err(), "Expected an error on HTTP 500 response");
     }
-
-    //     #[tokio::test]
-    //     async fn test_get_data_invalid_xml() {
-    //         let _m = mock("GET", "/mock-endpoint")
-    //             .with_status(200)
-    //             .with_body("<invalid><xml></invalid>") // Bad XML
-    //             .create();
-    //
-    //         let endpoint = "/mock-endpoint";
-    //         let base_url = server_url();
-    //         let test_url = format!("{}/{}", base_url, endpoint);
-    //
-    //         let result = get_data(&test_url).await;
-    //         assert!(result.is_err(), "Expected an error for invalid XML parsing");
-    //     }
-    // }
 }
