@@ -31,6 +31,8 @@ pub fn normalize_data(all_datasets: AllDatasets) -> Vec<DatasetWithConfig> {
             }
         })
         .collect()
+
+
 }
 
 
@@ -92,4 +94,8 @@ pub fn process_quarterly_average(date_column_name: &str,
     let result = lazy_result.collect()?;
 
     Ok(result)
+}
+
+fn align_quarters(all_datasets_with_config: Vec<DatasetWithConfig>) -> () {
+    let _ = all_datasets_with_config;
 }
