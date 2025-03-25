@@ -95,7 +95,7 @@ pub fn process_quarterly_average(date_column_name: &str,
 
     Ok(result)
 }
-
-fn align_quarters(all_datasets_with_config: Vec<DatasetWithConfig>) -> () {
-    let _ = all_datasets_with_config;
-}
+//
+// fn align_quarters(all_datasets_with_config: Vec<DatasetWithConfig>) -> () {
+//     let _ = all_datasets_with_config;
+// }
