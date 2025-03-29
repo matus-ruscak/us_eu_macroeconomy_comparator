@@ -19,7 +19,7 @@ jobs:
       - name: Build
         run: cargo build --verbose
       - name: Install cargo-llvm-cov
-        run: taiki-e/install-action@cargo-llvm-cov
+        run: cargo install cargo-llvm-cov
       - name: Run tests
         run: cargo test --all-features --verbose
       - name: Run Coverage
