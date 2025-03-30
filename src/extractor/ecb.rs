@@ -11,6 +11,7 @@ use std::error::Error;
 use std::collections::HashMap;
 
 
+
 pub async fn get_data(endpoint: &str, input_base_url: Option<&str>) -> Result<DataFrame, Box<dyn Error>> {
     let client = Client::new();
     let mut headers = header::HeaderMap::new();
@@ -113,6 +114,7 @@ mod tests {
     use tokio;
     use mockito;
     use polars::datatypes::PlSmallStr;
+    use crate::tests::test_helpers::test_helpers::assert_frame_equal;
 
     #[test]
     fn test_parse_xml_basic_case() {
@@ -177,23 +179,6 @@ mod tests {
         let result = parse_xml(xml_data);
 
         assert!(result.is_err(), "Should return an error due to invalid number parsing");
-    }
-
-    fn assert_frame_equal(df1: &DataFrame, df2: &DataFrame) {
-        assert_eq!(df1.shape(), df2.shape(), "Shape mismatch");
-
-        let df1_sorted = sort_dataframe(df1);
-        let df2_sorted = sort_dataframe(df2);
-
-        assert_eq!(df1_sorted, df2_sorted, "DataFrames do not match");
-    }
-
-    fn sort_dataframe(df: &DataFrame) -> DataFrame {
-        let mut sorted_cols: Vec<String> = df.get_column_names().iter().map(|s| s.to_string()).collect();
-        sorted_cols.sort();
-        let sorted_df = df.select(&sorted_cols).unwrap();
-        let sort_columns: Vec<String> = sorted_df.get_column_names().iter().map(|s| s.to_string()).collect();
-        sorted_df.sort(&sort_columns, SortMultipleOptions::new()).unwrap()
     }
 
     #[tokio::test]

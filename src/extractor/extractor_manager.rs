@@ -1,4 +1,5 @@
 use crate::extractor::{csv, fred, ecb};
+use crate::extractor::fred::get_fred_api_key;
 use crate::datasets_config::datasets_config::{DatasetConfig, get_all_datasets_configs};
 use crate::model::data_model::{DatasetWithConfig, AllDatasets};
 
@@ -52,7 +53,7 @@ async fn retrieve_dataset(dataset_config: DatasetConfig) -> DatasetWithConfig {
             csv::get_data(identifier).await.unwrap()
         },
         "fred" => {
-            fred::get_data(identifier, None).await.unwrap()
+            fred::get_data(identifier, None, get_fred_api_key).await.unwrap()
         },
         "ecb" => {
             ecb::get_data(identifier, None).await.unwrap()

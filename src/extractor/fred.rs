@@ -9,6 +9,7 @@ use polars::prelude::*;
 use polars::datatypes::DataType;
 
 
+
 #[derive(Debug, Deserialize)]
 pub struct Observation {
     date: String,
@@ -20,7 +21,7 @@ pub struct FredResponse {
     observations: Vec<Observation>,
 }
 
-pub async fn get_data(series_id: &str, input_base_url: Option<&str>) -> Result<DataFrame, Box<dyn Error>> {
+pub async fn get_data(series_id: &str, input_base_url: Option<&str>, get_api_key: fn() -> String) -> Result<DataFrame, Box<dyn Error>> {
     let api_key = get_api_key();
 
     let default_base_url = "https://api.stlouisfed.org/fred/series/observations";
@@ -55,7 +56,7 @@ pub async fn get_data(series_id: &str, input_base_url: Option<&str>) -> Result<D
     Ok(df)
 }
 
-fn get_api_key() -> String {
+pub fn get_fred_api_key() -> String {
     dotenv().ok();
 
     let settings = Config::builder()
@@ -73,50 +74,41 @@ fn get_api_key() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tests::test_helpers::test_helpers::assert_frame_equal;
 
-    fn assert_frame_equal(df1: &DataFrame, df2: &DataFrame) {
-        assert_eq!(df1.shape(), df2.shape(), "Shape mismatch");
-
-        let df1_sorted = sort_dataframe(df1);
-        let df2_sorted = sort_dataframe(df2);
-
-        assert_eq!(df1_sorted, df2_sorted, "DataFrames do not match");
-    }
-
-    fn sort_dataframe(df: &DataFrame) -> DataFrame {
-        let mut sorted_cols: Vec<String> = df.get_column_names().iter().map(|s| s.to_string()).collect();
-        sorted_cols.sort();
-        let sorted_df = df.select(&sorted_cols).unwrap();
-        let sort_columns: Vec<String> = sorted_df.get_column_names().iter().map(|s| s.to_string()).collect();
-        sorted_df.sort(&sort_columns, SortMultipleOptions::new()).unwrap()
-    }
     #[tokio::test]
     async fn test_get_data_success() {
-        let xml_response = r#"
-        <root>
-            <generic:ObsDimension value="2023-Q1" xmlns:generic="generic"/>
-            <generic:ObsValue value="1.23" xmlns:generic="generic"/>
-            <generic:ObsDimension value="2023-Q2" xmlns:generic="generic"/>
-            <generic:ObsValue value="2.34" xmlns:generic="generic"/>
-        </root>
+        let json_response = r#"
+        {"realtime_start":"2025-03-24","realtime_end":"2025-03-24","observation_start":"1600-01-01","observation_end":"9999-12-31","units":"lin","output_type":1,"file_type":"json","order_by":"observation_date","sort_order":"asc","count":236,"offset":0,"limit":100000,
+            "observations":[
+                {"realtime_start":"2025-03-24","realtime_end":"2025-03-24","date":"1966-01-01","value":"320999"},
+                {"realtime_start":"2025-03-24","realtime_end":"2025-03-24","date":"1966-04-01","value":"316097"},
+                {"realtime_start":"2025-03-24","realtime_end":"2025-03-24","date":"1966-07-01","value":"324748"}
+                ]
+            }
         "#;
 
         let mut server = mockito::Server::new_async().await;
 
-        server.mock("GET", "/mock-endpoint")
+        server.mock("GET", "/mock-endpoint?series_id=dummy_series&api_key=6ea087e8d47410f639d244a8b8c4374d&file_type=json")
             .with_status(200)
-            .with_header("content-type", "application/vnd.sdmx.genericdata+xml;version=2.1")
-            .with_body(xml_response)
+            .with_body(json_response)
             .create();
 
-        let endpoint = "/mock-endpoint";
-        let base_url = server.url();
 
-        let df_result = crate::extractor::ecb::get_data(&endpoint, Some(&base_url)).await.expect("Failed to get data");
+        let endpoint = "/mock-endpoint";
+        let series_id = "dummy_series";
+        fn mock_get_api_key() -> String {
+            "mocked_api_key".to_string()
+        }
+        let base_url = server.url();
+        let input_url = format!("{}{}", base_url, endpoint);
+
+        let df_result = get_data(&series_id, Some(&input_url), mock_get_api_key).await.expect("Failed to get data");
 
         // Expected DataFrame
-        let expected_quarters = Series::new(PlSmallStr::from_str("quarter"), &["2023-Q1", "2023-Q2"]);
-        let expected_values = Series::new(PlSmallStr::from_str("value"), &[1.23, 2.34]);
+        let expected_quarters = Series::new(PlSmallStr::from_str("quarter"), &["1966-01-01", "1966-04-01", "1966-07-01"]);
+        let expected_values = Series::new(PlSmallStr::from_str("value"), &[320999, 316097, 324748]);
         let expected_df = DataFrame::new(vec![expected_quarters.into(), expected_values.into()])
             .expect("Failed to create expected DataFrame");
 
