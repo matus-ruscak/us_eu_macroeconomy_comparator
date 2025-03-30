@@ -100,3 +100,63 @@ pub fn get_all_datasets_configs() -> Vec<DatasetConfig> {
 
     all_datasets_configs
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_quarterly_average_config_creation() {
+        let config = QuarterlyAverageConfig::new("date", "value", "avg_value");
+
+        assert_eq!(config.date_column_name, "date");
+        assert_eq!(config.target_column_name, "value");
+        assert_eq!(config.target_column_alias, "avg_value");
+    }
+
+    #[test]
+    fn test_dataset_config_creation() {
+        let quarterly_config = QuarterlyAverageConfig::new("date", "value", "avg_value");
+
+        let dataset = DatasetConfig::new(
+            "test_dataset",
+            "test_source",
+            "test_identifier",
+            true,
+            Some(quarterly_config),
+        );
+
+        assert_eq!(dataset.name, "test_dataset");
+        assert_eq!(dataset.source, "test_source");
+        assert_eq!(dataset.identifier, "test_identifier");
+        assert!(dataset.quarterly_avg_required);
+        assert!(dataset.quarterly_average_config.is_some());
+
+        let qa_config = dataset.quarterly_average_config.unwrap();
+        assert_eq!(qa_config.date_column_name, "date");
+        assert_eq!(qa_config.target_column_name, "value");
+        assert_eq!(qa_config.target_column_alias, "avg_value");
+    }
+
+    #[test]
+    fn test_get_all_datasets_configs() {
+        let configs = get_all_datasets_configs();
+
+        // Ensure at least some datasets are loaded
+        assert!(!configs.is_empty());
+
+        // Verify a specific dataset (e.g., "sp500") is present and correctly configured
+        let sp500_config = configs.iter().find(|c| c.name == "sp500").expect("sp500 config missing");
+
+        assert_eq!(sp500_config.source, "fred");
+        assert_eq!(sp500_config.identifier, "SP500");
+        assert!(sp500_config.quarterly_avg_required);
+        assert!(sp500_config.quarterly_average_config.is_some());
+
+        let qa_config = sp500_config.quarterly_average_config.unwrap();
+        assert_eq!(qa_config.date_column_name, "date");
+        assert_eq!(qa_config.target_column_name, "value");
+        assert_eq!(qa_config.target_column_alias, "sp500_usd");
+    }
+}
