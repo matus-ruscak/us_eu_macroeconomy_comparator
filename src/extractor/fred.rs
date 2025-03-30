@@ -74,6 +74,7 @@ pub fn get_fred_api_key() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::env;
     use crate::tests::test_helpers::test_helpers::assert_frame_equal;
 
     #[tokio::test]
@@ -90,7 +91,7 @@ mod tests {
 
         let mut server = mockito::Server::new_async().await;
 
-        server.mock("GET", "/mock-endpoint?series_id=dummy_series&api_key=6ea087e8d47410f639d244a8b8c4374d&file_type=json")
+        server.mock("GET", "/mock-endpoint?series_id=dummy_series&api_key=mocked_api_key&file_type=json")
             .with_status(200)
             .with_body(json_response)
             .create();
@@ -113,5 +114,17 @@ mod tests {
             .expect("Failed to create expected DataFrame");
 
         assert_frame_equal(&df_result, &expected_df);
+    }
+
+    #[test]
+    fn test_get_fred_api_key_from_env() {
+        unsafe {
+            env::set_var("API_KEY", "mocked_api_key");
+        }
+        let api_key = get_fred_api_key();
+        assert_eq!(api_key, "mocked_api_key");
+        unsafe {
+            env::remove_var("API_KEY");
+        }
     }
 }
