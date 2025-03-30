@@ -66,3 +66,47 @@ impl AllDatasets {
         }
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::datasets_config::datasets_config::DatasetConfig;
+
+    fn mock_dataframe() -> DataFrame {
+        DataFrame::empty()
+    }
+
+    fn mock_dataset_config() -> DatasetConfig {
+        DatasetConfig::new("test_dataset", "test_source", "test_identifier", false, None)
+    }
+
+    #[test]
+    fn test_dataset_with_config_creation() {
+        let df = mock_dataframe();
+        let config = mock_dataset_config();
+
+        let dataset = DatasetWithConfig::new("test_dataset", df.clone(), config.clone());
+
+        assert_eq!(dataset.name, "test_dataset");
+        assert_eq!(dataset.dataset_config.name, "test_dataset");
+    }
+
+    #[test]
+    fn test_all_datasets_creation_and_items() {
+        let dataset = DatasetWithConfig::new("test", mock_dataframe(), mock_dataset_config());
+
+        let all_datasets = AllDatasets::new(
+            dataset.clone(), dataset.clone(), dataset.clone(), dataset.clone(),
+            dataset.clone(), dataset.clone(), dataset.clone(), dataset.clone()
+        );
+
+        let items = all_datasets.items();
+
+        assert_eq!(items.len(), 8);
+
+        for ds in &items {
+            assert_eq!(ds.name, "test");
+        }
+    }
+}

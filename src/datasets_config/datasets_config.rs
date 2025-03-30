@@ -143,10 +143,8 @@ mod tests {
     fn test_get_all_datasets_configs() {
         let configs = get_all_datasets_configs();
 
-        // Ensure at least some datasets are loaded
         assert!(!configs.is_empty());
 
-        // Verify a specific dataset (e.g., "sp500") is present and correctly configured
         let sp500_config = configs.iter().find(|c| c.name == "sp500").expect("sp500 config missing");
 
         assert_eq!(sp500_config.source, "fred");
