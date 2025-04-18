@@ -21,7 +21,7 @@ pub struct FredResponse {
     observations: Vec<Observation>,
 }
 
-pub async fn get_data(series_id: &str, input_base_url: Option<&str>, get_api_key: fn() -> String) -> Result<DataFrame, Box<dyn Error>> {
+pub async fn get_data(series_id: String, input_base_url: Option<&str>, get_api_key: fn() -> String) -> Result<DataFrame, Box<dyn Error + Send + Sync>> {
     let api_key = get_api_key();
 
     let default_base_url = "https://api.stlouisfed.org/fred/series/observations";
@@ -98,14 +98,14 @@ mod tests {
 
 
         let endpoint = "/mock-endpoint";
-        let series_id = "dummy_series";
+        let series_id = "dummy_series".to_string();
         fn mock_get_api_key() -> String {
             "mocked_api_key".to_string()
         }
         let base_url = server.url();
         let input_url = format!("{}{}", base_url, endpoint);
 
-        let df_result = get_data(&series_id, Some(&input_url), mock_get_api_key).await.expect("Failed to get data");
+        let df_result = get_data(series_id, Some(&input_url), mock_get_api_key).await.expect("Failed to get data");
 
         // Expected DataFrame
         let expected_quarters = Series::new(PlSmallStr::from_str("quarter"), &["1966-01-01", "1966-04-01", "1966-07-01"]);

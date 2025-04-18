@@ -2,7 +2,7 @@ use std::error::Error;
 use polars::prelude::*;
 use tokio::task;
 
-pub async fn get_data(csv_file_path: &str) -> Result<DataFrame, Box<dyn Error>> {
+pub async fn get_data(csv_file_path: String) -> Result<DataFrame, Box<dyn Error + Send + Sync>> {
     println!("retrieving data from csv: {csv_file_path}");
 
     let csv_file_path_owned = csv_file_path.to_string();
@@ -28,7 +28,7 @@ mod tests {
     async fn test_get_data_reads_csv() {
         let mut temp_file = NamedTempFile::new().expect("Failed to create temp file");
         writeln!(temp_file, "name,age\nAlice,30\nBob,25").expect("Failed to write to temp file");
-        let file_path = temp_file.path().to_str().unwrap();
+        let file_path = temp_file.path().to_str().unwrap().to_string();
 
         let df = get_data(file_path).await.unwrap();
 

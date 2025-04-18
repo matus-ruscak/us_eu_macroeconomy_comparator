@@ -12,7 +12,7 @@ use std::collections::HashMap;
 
 
 
-pub async fn get_data(endpoint: &str, input_base_url: Option<&str>) -> Result<DataFrame, Box<dyn Error>> {
+pub async fn get_data(endpoint: String, input_base_url: Option<&str>) -> Result<DataFrame, Box<dyn Error + Send + Sync>> {
     let client = Client::new();
     let mut headers = header::HeaderMap::new();
     headers.insert(
@@ -200,10 +200,10 @@ mod tests {
             .with_body(xml_response)
             .create();
 
-        let endpoint = "/mock-endpoint";
+        let endpoint = "/mock-endpoint".to_string();
         let base_url = server.url();
 
-        let df_result = get_data(&endpoint, Some(&base_url)).await.expect("Failed to get data");
+        let df_result = get_data(endpoint, Some(&base_url)).await.expect("Failed to get data");
 
         // Expected DataFrame
         let expected_quarters = Series::new(PlSmallStr::from_str("quarter"), &["2023-Q1", "2023-Q2"]);
@@ -222,10 +222,10 @@ mod tests {
             .with_status(500)
             .create();
 
-        let endpoint = "/mock-endpoint";
+        let endpoint = "/mock-endpoint".to_string();
         let base_url = server.url();
 
-        let result = get_data(&endpoint, Some(&base_url)).await;
+        let result = get_data(endpoint, Some(&base_url)).await;
         assert!(result.is_err(), "Expected an error on HTTP 500 response");
     }
 }
