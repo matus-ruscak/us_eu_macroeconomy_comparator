@@ -1,16 +1,21 @@
-mod extractor;
-use extractor::extractor_manager::extract_data;
-use model::data_model::AllDatasets;
-use transformer::normalize::normalize_data;
-use crate::model::data_model::DatasetWithConfig;
 use std::time::Instant;
 
+use extractor::extractor_manager::extract_data;
+use loader::loader_manager::load;
+use model::data_model::AllDatasets;
+use transformer::normalize::{convert_eu_to_usd, join_all_datasets, normalize_data, rename_columns};
+
+use crate::model::data_model::DatasetWithConfig;
+
+mod extractor;
 mod transformer;
 mod loader;
-mod utils;
 mod tests;
 mod datasets_config;
 mod model;
+
+// TODO: Remove unused dependencies
+// TODO: Change println! statements to a logger
 
 #[tokio::main]
 async fn main() {
@@ -20,13 +25,13 @@ async fn main() {
 
     let all_normalized_datasets: Vec<DatasetWithConfig> = normalize_data(all_datasets);
 
-    // Debug export
-    for dataset in all_normalized_datasets {
-        let name = dataset.name;
-        println!("name is {name}");
-        let dataframe = dataset.dataframe;
-        println!("{dataframe}");
-    }
+    let renamed_datasets = rename_columns(all_normalized_datasets);
+
+    let converted_datasets = convert_eu_to_usd(renamed_datasets);
+
+    let result_dataframe = join_all_datasets(converted_datasets);
+
+    load(result_dataframe);
 
     let duration = start.elapsed();
     println!("Execution time: {:?}", duration);

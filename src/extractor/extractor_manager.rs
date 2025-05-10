@@ -1,10 +1,12 @@
-use crate::extractor::{csv, fred, ecb};
-use crate::extractor::fred::get_fred_api_key;
-use crate::datasets_config::datasets_config::{DatasetConfig, get_all_datasets_configs};
-use crate::model::data_model::{DatasetWithConfig, AllDatasets};
-use tokio::task::JoinHandle;
-use polars::prelude::DataFrame;
 use std::future::Future;
+
+use polars::prelude::DataFrame;
+use tokio::task::JoinHandle;
+
+use crate::datasets_config::datasets_config::{DatasetConfig, get_all_datasets_configs};
+use crate::extractor::{csv, ecb, fred};
+use crate::extractor::fred::get_fred_api_key;
+use crate::model::data_model::{AllDatasets, DatasetWithConfig};
 
 type DynError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -102,10 +104,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::env;
+
     use polars::prelude::*;
-    use crate::model::data_model::DatasetWithConfig;
+
     use crate::datasets_config::datasets_config::DatasetConfig;
+    use crate::model::data_model::DatasetWithConfig;
+
+    use super::*;
 
     fn dummy_dataframe() -> DataFrame {
         df!["col" => &[1, 2, 3]].unwrap()
@@ -182,12 +188,15 @@ mod tests {
     async fn test_retrieve_dataset_fred() {
         let config = sample_config("fred");
 
+        unsafe {
+            env::set_var("API_KEY", "mocked_api_key");
+        }
         let result = retrieve_dataset(
             config.clone(),
             |_id| async { panic!("should not be called in fred test") },
             |id, _opt, key_fn| async move {
                 assert_eq!(id, "test_id");
-                assert_eq!(key_fn(), get_fred_api_key());
+                assert_eq!(key_fn(), "mocked_api_key");
                 Ok(dummy_dataframe())
             },
             |_id, _opt| async { panic!("should not be called in fred test") },

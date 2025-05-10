@@ -1,4 +1,5 @@
 use std::error::Error;
+
 use polars::prelude::*;
 use tokio::task;
 
@@ -20,9 +21,11 @@ pub async fn get_data(csv_file_path: String) -> Result<DataFrame, Box<dyn Error 
 }
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::io::Write;
+
     use tempfile::NamedTempFile;
+
+    use super::*;
 
     #[tokio::test]
     async fn test_get_data_reads_csv() {

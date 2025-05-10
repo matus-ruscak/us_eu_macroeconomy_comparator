@@ -3,17 +3,20 @@ pub struct QuarterlyAverageConfig {
     pub date_column_name: &'static str,
     pub target_column_name: &'static str,
     pub target_column_alias: &'static str,
+    pub date_format_mask: &'static str
 }
 
 impl QuarterlyAverageConfig {
     pub fn new(date_column_name: &'static str,
                target_column_name: &'static str,
                target_column_alias: &'static str,
+               date_format_mask: &'static str
     ) -> Self {
         QuarterlyAverageConfig {
             date_column_name,
             target_column_name,
             target_column_alias,
+            date_format_mask
         }
     }
 }
@@ -52,35 +55,40 @@ pub fn get_all_datasets_configs() -> Vec<DatasetConfig> {
                            Some(QuarterlyAverageConfig::new(
                                "observation_date",
                                "DEXUSEU",
-                               "avg_fx_rate"))),
+                               "avg_fx_rate",
+                               "%Y-%m-%d"))),
         DatasetConfig::new("sp500",
                            "fred",
                            "SP500",
                            true,
                            Some(QuarterlyAverageConfig::new("date",
                                                             "value",
-                                                            "sp500_usd"))),
+                                                            "sp500_usd",
+                                                            "%Y-%m-%d"))),
         DatasetConfig::new("us_gdp",
                            "fred",
-                           "FYGDP",
+                           "GDP",
                            true,
                            Some(QuarterlyAverageConfig::new("date",
                                                             "value",
-                                                            "us_gdp_usd"))),
+                                                            "us_gdp_usd",
+                                                            "%Y-%m-%d"))),
         DatasetConfig::new("us_total_public_debt",
                            "fred",
                            "GFDEBTN",
                            true,
                            Some(QuarterlyAverageConfig::new("date",
                                                             "value",
-                                                            "us_total_debt_usd"))),
+                                                            "us_total_debt_usd",
+                                                            "%Y-%m-%d"))),
         DatasetConfig::new("us_inflation",
                            "fred",
                            "CORESTICKM159SFRBATL",
                            true,
                            Some(QuarterlyAverageConfig::new("date",
                                                             "value",
-                                                            "us_inflation_usd"))),
+                                                            "us_inflation_usd",
+                                                            "%Y-%m-%d"))),
         DatasetConfig::new("eu_government_debt",
                            "ecb",
                            "GFS/Q.N.I9.W0.S13.S1.C.L.LE.GD.T._Z.XDC._T.F.V.N._T",
@@ -94,8 +102,11 @@ pub fn get_all_datasets_configs() -> Vec<DatasetConfig> {
         DatasetConfig::new("eu_inflation",
                            "ecb",
                            "ICP/M.U2.N.XEF000.4.ANR",
-                           false,
-                           None),
+                           true,
+                           Some(QuarterlyAverageConfig::new("quarter",
+                                                            "value",
+                                                            "value",
+                                                            "%Y-%m"))),
     ];
 
     all_datasets_configs
@@ -108,16 +119,17 @@ mod tests {
 
     #[test]
     fn test_quarterly_average_config_creation() {
-        let config = QuarterlyAverageConfig::new("date", "value", "avg_value");
+        let config = QuarterlyAverageConfig::new("date", "value", "avg_value", "%Y-%m");
 
         assert_eq!(config.date_column_name, "date");
         assert_eq!(config.target_column_name, "value");
         assert_eq!(config.target_column_alias, "avg_value");
+        assert_eq!(config.date_format_mask, "%Y-%m");
     }
 
     #[test]
     fn test_dataset_config_creation() {
-        let quarterly_config = QuarterlyAverageConfig::new("date", "value", "avg_value");
+        let quarterly_config = QuarterlyAverageConfig::new("date", "value", "avg_value", "%Y-%m");
 
         let dataset = DatasetConfig::new(
             "test_dataset",
@@ -137,6 +149,7 @@ mod tests {
         assert_eq!(qa_config.date_column_name, "date");
         assert_eq!(qa_config.target_column_name, "value");
         assert_eq!(qa_config.target_column_alias, "avg_value");
+        assert_eq!(qa_config.date_format_mask, "%Y-%m");
     }
 
     #[test]

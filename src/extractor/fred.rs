@@ -1,14 +1,13 @@
 use std::env;
 use std::error::Error;
+
 use config::{Config, Environment};
 use dotenvy::dotenv;
+use polars::datatypes::DataType;
+use polars::prelude::*;
 use reqwest;
 use reqwest::Client;
 use serde::Deserialize;
-use polars::prelude::*;
-use polars::datatypes::DataType;
-
-
 
 #[derive(Debug, Deserialize)]
 pub struct Observation {
@@ -73,9 +72,11 @@ pub fn get_fred_api_key() -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::env;
+
     use crate::tests::test_helpers::test_helpers::assert_frame_equal;
+
+    use super::*;
 
     #[tokio::test]
     async fn test_get_data_success() {

@@ -1,5 +1,7 @@
 use polars::frame::DataFrame;
+
 use crate::datasets_config::datasets_config::DatasetConfig;
+
 #[derive(Clone)]
 pub struct DatasetWithConfig {
     pub name: &'static str,
@@ -70,8 +72,9 @@ impl AllDatasets {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::datasets_config::datasets_config::DatasetConfig;
+
+    use super::*;
 
     fn mock_dataframe() -> DataFrame {
         DataFrame::empty()

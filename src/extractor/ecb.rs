@@ -1,16 +1,15 @@
+use std::collections::HashMap;
+use std::error::Error;
+use std::str;
+
+use polars::datatypes::PlSmallStr;
+use polars::frame::DataFrame;
 use polars::prelude::*;
+use quick_xml::events::Event;
+use quick_xml::Reader;
 use reqwest;
 use reqwest::Client;
 use reqwest::header;
-use polars::frame::DataFrame;
-use polars::datatypes::PlSmallStr;
-use quick_xml::Reader;
-use std::str;
-use quick_xml::events::Event;
-use std::error::Error;
-use std::collections::HashMap;
-
-
 
 pub async fn get_data(endpoint: String, input_base_url: Option<&str>) -> Result<DataFrame, Box<dyn Error + Send + Sync>> {
     let client = Client::new();
@@ -110,11 +109,13 @@ fn validate_quarters_and_values(quarters: &Vec<String>, values: &Vec<f64>) -> ()
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use tokio;
     use mockito;
     use polars::datatypes::PlSmallStr;
+    use tokio;
+
     use crate::tests::test_helpers::test_helpers::assert_frame_equal;
+
+    use super::*;
 
     #[test]
     fn test_parse_xml_basic_case() {
