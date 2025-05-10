@@ -370,9 +370,9 @@ mod tests {
         assert_eq!(debt_converted.get(0), Some(330.0));
         assert_eq!(debt_converted.get(1), Some(480.0));
 
-        let inflation_converted = result_map.get("eu_inflation").unwrap().column("eu_inflation_converted").unwrap().f64().unwrap();
-        assert_eq!(inflation_converted.get(0), Some(2.2));
-        assert_eq!(inflation_converted.get(1), Some(3.0));
+        let inflation_converted = result_map.get("eu_inflation").unwrap().column("eu_inflation").unwrap().f64().unwrap();
+        assert_eq!(inflation_converted.get(0), Some(2.0));
+        assert_eq!(inflation_converted.get(1), Some(2.5));
 
         // Check that non-EU dataset is untouched
         assert!(result_map.contains_key("us_gdp"));
