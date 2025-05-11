@@ -1,3 +1,4 @@
+use log::{info};
 use std::env;
 use std::error::Error;
 
@@ -27,7 +28,7 @@ pub async fn get_data(series_id: String, input_base_url: Option<&str>, get_api_k
     let base_url = input_base_url.unwrap_or(default_base_url);
 
     let url = format!("{}?series_id={}&api_key={}&file_type=json", base_url, series_id, api_key);
-    println!("retrieving data from fred: {url}");
+    info!("retrieving data from fred: {url}");
 
     let client = Client::new();
 

@@ -2,6 +2,7 @@ use std::time::Instant;
 
 use extractor::extractor_manager::extract_data;
 use loader::loader_manager::load;
+use log::{info};
 use model::data_model::AllDatasets;
 use transformer::normalize::{convert_eu_to_usd, join_all_datasets, normalize_data, rename_columns};
 
@@ -14,11 +15,12 @@ mod tests;
 mod datasets_config;
 mod model;
 
-// TODO: Add logger instead of println! statements
-// TODO: Remove unused dependencies
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
+    info!("Logger is working!");
+
     let start = Instant::now();
 
     let all_datasets: AllDatasets = extract_data().await;
@@ -33,7 +35,7 @@ async fn main() {
 
     load(result_dataframe);
 
-    let duration = start.elapsed();
-    println!("Execution time: {:?}", duration);
 
+    let duration = start.elapsed();
+    info!("Execution time: {:?}", duration);
 }

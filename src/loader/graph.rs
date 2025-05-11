@@ -1,3 +1,4 @@
+use log::{info};
 use polars::prelude::*;
 use plotters::prelude::*;
 
@@ -144,5 +145,5 @@ fn generate_graph(result: DataFrame, graph_configuration: GraphConfiguration) ->
         .label_font(("sans-serif", 40)) // ← Increase font size here
         .draw().unwrap();
 
-    println!("Plot saved as {file_name}.png");
+    info!("Plot saved as {file_name}.png");
 }

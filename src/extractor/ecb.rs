@@ -1,3 +1,4 @@
+use log::{info};
 use std::collections::HashMap;
 use std::error::Error;
 use std::str;
@@ -22,7 +23,7 @@ pub async fn get_data(endpoint: String, input_base_url: Option<&str>) -> Result<
     let base_url = input_base_url.unwrap_or(default_base_url);
 
     let url = format!("{}{}", base_url, endpoint);
-    println!("retrieving data from ecb: {url}");
+    info!("retrieving data from ecb: {url}");
 
     let resp = client
         .get(&url)

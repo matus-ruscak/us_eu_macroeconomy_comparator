@@ -1,10 +1,11 @@
+use log::{info};
 use std::error::Error;
 
 use polars::prelude::*;
 use tokio::task;
 
 pub async fn get_data(csv_file_path: String) -> Result<DataFrame, Box<dyn Error + Send + Sync>> {
-    println!("retrieving data from csv: {csv_file_path}");
+    info!("retrieving data from csv: {csv_file_path}");
 
     let csv_file_path_owned = csv_file_path.to_string();
 
