@@ -14,8 +14,8 @@ mod tests;
 mod datasets_config;
 mod model;
 
+// TODO: Add logger instead of println! statements
 // TODO: Remove unused dependencies
-// TODO: Change println! statements to a logger
 
 #[tokio::main]
 async fn main() {
