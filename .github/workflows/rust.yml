@@ -40,3 +40,9 @@ jobs:
       # Generate the final report
       - name: Generate Coverage Report
         run: cargo llvm-cov report --lcov --output-path lcov.info
+
+      - name: Upload lcov.info artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: lcov.info

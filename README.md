@@ -44,14 +44,15 @@ Each of these metrics is compared alongside the **S&P 500** index, allowing for 
   A manually downloaded CSV file with EUR/USD exchange rates, used for currency normalization.
 
 ## Usage
-
-1. Ensure all dependencies are installed:
+1. Register on the Federal Reserve Bank of St.Louis and generate an API key -> https://fredaccount.stlouisfed.org/apikey
+2. Add a .env file and add the generated API key in the format API_KEY=<API_KEY>
+3. Ensure all dependencies are installed:
    ```bash
    cargo build --release
-2. Run the project:
+4. Run the project:
    ```bash
    cargo run --release
-3. View the output:
+5. View the output:
    - result.csv will contain the merged and cleaned data
    - Graphs will be saved as PNG images in the working directory
 
